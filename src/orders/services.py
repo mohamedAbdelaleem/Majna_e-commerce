@@ -12,7 +12,6 @@ from products.models import Inventory
 from addresses.models import PickupAddress
 from .models import Order, OrderItem, OrderItemStore
 
-
 MAX_ORDER_PRODUCTS = 10
 
 
@@ -36,19 +35,21 @@ class OrderService:
                 pickup_address_id=order_data["pickup_address_id"],
             )
             order_items_list = []
+            total_price = 0
             for order_item in order_data["order_items"]:
                 product_id, quantity = order_item["product_id"], order_item["quantity"]
                 product = self.product_selector.get_product(pk=product_id)
-                order_items_list.append(OrderItem(
-                    order=order,
-                    product_id=product_id,
-                    unit_price=product.price,
-                    quantity=quantity,
-                ))
+                order_items_list.append(
+                    OrderItem(
+                        order=order,
+                        product_id=product_id,
+                        unit_price=product.price,
+                        quantity=quantity,
+                    )
+                )
+                total_price += product.price * quantity
 
             OrderItem.objects.bulk_create(order_items_list)
-
-            total_price = self.order_selector.get_order_total_price(order.pk)
             intent = self._create_payment_intent(order.pk, total_price)
 
         return intent
@@ -99,10 +100,12 @@ class OrderService:
             raise ValidationError("Max order items allowed exceeded")
 
         product_ids = [item["product_id"] for item in order_items]
-        inactive_products = self.product_selector.product_list(id__in=product_ids, is_active=False)
+        inactive_products = self.product_selector.product_list(
+            id__in=product_ids, is_active=False
+        )
         if inactive_products.exists():
             raise ValidationError("Requested product has been removed removed")
-        
+
         for order_item in order_items:
             product_id, quantity = order_item["product_id"], order_item["quantity"]
             self._validate_requested_quantity(product_id, quantity)
@@ -111,12 +114,14 @@ class OrderService:
         total_inventory = self.product_selector.get_total_quantity(product_id)
         if total_inventory < quantity:
 
-            raise rest_exception.ValidationError({
+            raise rest_exception.ValidationError(
+                {
                     product_id: {
                         "message": f"Not Enough inventory exist for product #{product_id}",
                         "available_inventory": total_inventory,
                     }
-                })
+                }
+            )
 
     def _validate_pickup_address(self, customer_pk: int, pickup_address_pk: int):
         if not PickupAddress.objects.filter(

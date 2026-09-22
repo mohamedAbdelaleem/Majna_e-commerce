@@ -15,6 +15,8 @@ faker = "*"
 stripe = "*"
 psycopg = "*"
 psycopg-binary = "*"
+django-storages = "*"
+pillow = "*"
 
 [dev-packages]
 

@@ -195,6 +195,10 @@ class ProductSelector:
     def get_product(self, **criteria):
         return product_models.Product.objects.get(**criteria)
 
+    def get_product_owner(self, product_id):
+        store = product_models.Inventory.objects.filter(product_id=product_id)[0:1]
+        return store.distributor
+
 
 class AlbumService:
     def add_album_items(self, product_pk, album_items_data: List[Dict]):
@@ -247,7 +251,6 @@ class AlbumService:
         if album_item.is_cover:
             raise Conflict("Can't delete the cover image")
         album_item.delete()
-
 
     def _validate_album_items(self, album_items_data: List[Dict]):
         if len(album_items_data) > MAX_ALBUM_ITEMS:

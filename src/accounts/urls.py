@@ -11,7 +11,7 @@ urlpatterns = [
         name="resend_confirmation",
     ),
     path(
-        "password-reset",
+        "password-reset-request",
         views.PasswordResetEmailView.as_view(),
         name="reset_password_email",
     ),
