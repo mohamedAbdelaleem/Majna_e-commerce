@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = local_settings.SECRET_KEY
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,11 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "rest_framework",
     "knox",
     "storages",
-    
     "accounts",
     "brands",
     "brands_applications",
@@ -88,7 +86,16 @@ WSGI_APPLICATION = "majna.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = local_settings.DATABASES_CONF
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME"),
+        "USER": os.environ.get("DB_USER"),
+        "PASSWORD": os.environ.get("DB_PASSWORD"),
+        "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
+    }
+}
 
 
 # Password validation
@@ -151,23 +158,26 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
 }
 
-REST_KNOX = local_settings.REST_KNOX
+REST_KNOX = {
+    "USER_SERIALIZER": os.environ.get("REST_KNOX_USER_SERIALIZER"),
+    "TOKEN_LIMIT_PER_USER": int(os.environ.get("REST_KNOX_TOKEN_LIMIT_PER_USER")),
+}
 
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = local_settings.EMAIL_HOST_USER
-EMAIL_HOST_PASSWORD = local_settings.EMAIL_HOST_PASSWORD
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Media
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
-SUPABASE_URL = local_settings.SUPABASE_URL
-SUPABASE_KEY = local_settings.SERVICE_KEY
+SUPABASE_URL = os.environ.get("SUPABASE_URL", default=local_settings.SUPABASE_URL)
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", default=local_settings.SUPABASE_KEY)
 
 
 ## S3
@@ -192,9 +202,7 @@ AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 # }
 
 
-STRIPE_SECRET = os.environ.get(
-    "STRIPE_SECRET", default=local_settings.STRIPE_SECRET
-)
+STRIPE_SECRET = os.environ.get("STRIPE_SECRET", default=local_settings.STRIPE_SECRET)
 STRIPE_PUBLISHER = os.environ.get(
     "STRIPE_PUBLISHER", default=local_settings.STRIPE_PUBLISHER
 )

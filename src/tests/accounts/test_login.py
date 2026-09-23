@@ -15,14 +15,13 @@ class LoginTests(APITestCase):
         customer_group = Group.objects.create(name="Customer")
         cls.user.groups.add(customer_group)
         cls.user.save()
-        
 
     def test_success_login(self):
         valid_data = {"email": self.user.email, "password": "12345aa"}
 
         response = self.client.post(self.login_url, data=valid_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         self.assertIn("token", response.data)
         self.assertEqual(response.data["user"]["email"], self.user.email)
         self.assertEqual(response.data["user"]["user_role"], "Customer")
@@ -60,20 +59,16 @@ class LoginTests(APITestCase):
 
         self.assertIn("token", response.data)
         self.assertEqual(response.data["user"]["email"], self.user.email)
-    
+
     def test_unconfirmed_email_failure(self):
 
-        user = get_user_model().objects.create_user(email="test2@test.com", password="123")
+        user = get_user_model().objects.create_user(
+            email="test2@test.com", password="123"
+        )
 
-        data = {
-            'email': user.email,
-            'password': '123'
-        }
-        
+        data = {"email": user.email, "password": "123"}
+
         response = self.client.post(self.login_url, data=data)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertNotIn("token", response.data)
-
-
-

@@ -1,5 +1,5 @@
 
-INSERT INTO stores_governorate (id, name_ar, name) VALUES
+INSERT INTO addresses_governorate (id, name_ar, name) VALUES
 (1, 'القاهرة', 'Cairo'),
 (2, 'الجيزة', 'Giza'),
 (3, 'الأسكندرية', 'Alexandria'),
@@ -34,10 +34,10 @@ ON CONFLICT (id) DO NOTHING;
 DO $$
 BEGIN
     -- Check if the table is empty
-    IF NOT EXISTS (SELECT 1 FROM stores_city LIMIT 1) THEN
+    IF NOT EXISTS (SELECT 1 FROM addresses_city LIMIT 1) THEN
         RAISE NOTICE 'Table is empty. Populating initial data...';
         
-        INSERT INTO stores_city (governorate_id, name_ar, name) VALUES
+        INSERT INTO addresses_city (governorate_id, name_ar, name) VALUES
 
         /* Start Cairo ID:1 */
         (1, '15 مايو', '15 May'),
@@ -541,5 +541,5 @@ INSERT INTO auth_group(id, name) VALUES
 (1, 'Customer'),
 (2, 'Distributor'),
 (3, 'Reviewer'),
-(4, 'Deliver')
+(4, 'Delivery')
 ON CONFLICT (id) DO NOTHING;
