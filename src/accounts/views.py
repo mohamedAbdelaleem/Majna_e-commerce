@@ -8,8 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 
 from common.api.exceptions import Conflict
-from majna.tasks import send_confirmation_email
-from . import serializers as local_serializer
+from majna.tasks import send_confirmation_email, send_password_reset_email
+from accounts import serializers as local_serializer
 
 
 class UsersView(APIView):
@@ -64,7 +64,7 @@ class ResendEmailConfirmationView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             if not user.email_confirmed and settings.REQUIRE_ACCOUNT_ACTIVATION:
-                user.send_email_confirmation_email()
+                send_confirmation_email.delay(user.pk)
 
         return Response(
             data={"message": "An Email has been Sent if this is a valid email"}
@@ -76,7 +76,7 @@ class PasswordResetEmailView(APIView):
         serializer = local_serializer.SendEmailSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data["user"]
-            user.send_password_reset_email()
+            send_password_reset_email.delay(user.pk)
             return Response(
                 data={"message": "An Email has been Sent if this is a valid email"}
             )

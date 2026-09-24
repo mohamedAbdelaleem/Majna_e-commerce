@@ -1,6 +1,8 @@
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
+from django.test import override_settings
 from rest_framework.test import APITestCase
 from rest_framework import status
 from knox.models import AuthToken
@@ -102,24 +104,27 @@ class ChangePasswordTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class PasswordResetEmailTests(APITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         cls.user = get_user_model().objects.create_user(
             email="test@test.com", password="123"
         )
-        cls.url = reverse("accounts:reset_password_email")
+        cls.url = reverse("accounts:password_reset_request")
 
-    def test_reset_password_email(self):
+    def test_password_reset_request(self):
         data = {"email": self.user.email}
 
         response = self.client.post(path=self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_invalid_email_failure(self):
         data = {"email": "test22@test.com"}
         response = self.client.post(path=self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(mail.outbox), 0)
 
 
 class PasswordResetTests(APITestCase):

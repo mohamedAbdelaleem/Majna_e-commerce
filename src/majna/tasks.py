@@ -21,3 +21,18 @@ def send_confirmation_email(user_pk: int):
     )
     text_message = strip_tags(html_message)
     user.email_user(subject, text_message, html_message=html_message)
+
+
+@shared_task()
+def send_password_reset_email(user_pk: int):
+    user = User.objects.get(id=user_pk)
+    subject = "Password Reset"
+    token = default_token_generator.make_token(user=user)
+    password_reset_link = (
+        settings.FRONTEND_BASE_URL + f"reset-password/{user.pk}/{token}"
+    )
+    html_message = render_to_string(
+        "password_reset.html", {"password_reset_link": password_reset_link}
+    )
+    text_message = strip_tags(html_message)
+    user.email_user(subject, text_message, html_message=html_message)

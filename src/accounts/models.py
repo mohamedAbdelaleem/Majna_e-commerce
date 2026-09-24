@@ -45,18 +45,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
-    def send_password_reset_email(self):
-        subject = "Password Reset"
-        token = default_token_generator.make_token(user=self)
-        password_reset_link = (
-            settings.FRONTEND_BASE_URL + f"reset-password/{self.pk}/{token}"
-        )
-        html_message = render_to_string(
-            "password_reset.html", {"password_reset_link": password_reset_link}
-        )
-        text_message = strip_tags(html_message)
-        self.email_user(subject, text_message, html_message=html_message)
-
     def activate_email(self):
         self.email_confirmed = True
         self.save()

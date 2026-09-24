@@ -13,7 +13,7 @@ urlpatterns = [
     path(
         "password-reset-request",
         views.PasswordResetEmailView.as_view(),
-        name="reset_password_email",
+        name="password_reset_request",
     ),
     path(
         "<int:pk>/password-reset",
