@@ -17,6 +17,8 @@ psycopg = "*"
 psycopg-binary = "*"
 django-storages = "*"
 pillow = "*"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 

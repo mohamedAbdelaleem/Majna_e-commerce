@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 
 from common.api.exceptions import Conflict
+from majna.tasks import send_confirmation_email
 from . import serializers as local_serializer
 
 
@@ -18,7 +19,7 @@ class UsersView(APIView):
         user = user.save()
 
         if settings.REQUIRE_ACCOUNT_ACTIVATION:
-            user.send_email_confirmation_email()
+            send_confirmation_email.delay(user.pk)
 
         return Response(status=status.HTTP_201_CREATED)
 
@@ -65,7 +66,9 @@ class ResendEmailConfirmationView(APIView):
             if not user.email_confirmed and settings.REQUIRE_ACCOUNT_ACTIVATION:
                 user.send_email_confirmation_email()
 
-        return Response(data={"message": "An Email has been Sent if this is a valid email"})
+        return Response(
+            data={"message": "An Email has been Sent if this is a valid email"}
+        )
 
 
 class PasswordResetEmailView(APIView):
@@ -74,9 +77,13 @@ class PasswordResetEmailView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             user.send_password_reset_email()
-            return Response(data={"message": "An Email has been Sent if this is a valid email"})
-        
-        return Response(data={"message": "Email not found!"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data={"message": "An Email has been Sent if this is a valid email"}
+            )
+
+        return Response(
+            data={"message": "Email not found!"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class PasswordResetView(APIView):
@@ -90,11 +97,12 @@ class PasswordResetView(APIView):
         if not user.email_confirmed:
             user.activate_email()
         if "password" not in request.data:
-            return Response(data={"message": "Password Required!"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data={"message": "Password Required!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         data = {"password": request.data["password"]}
-        user_serializer = local_serializer.UserSerializer(
-            user, data=data, partial=True
-        )
+        user_serializer = local_serializer.UserSerializer(user, data=data, partial=True)
         user_serializer.is_valid(raise_exception=True)
         user_serializer.save()
 

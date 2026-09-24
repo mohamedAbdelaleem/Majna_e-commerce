@@ -2,10 +2,13 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
+from django.test import override_settings
+from django.core import mail
 from rest_framework.test import APITestCase
 from rest_framework import status
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class SignUpTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
@@ -33,10 +36,15 @@ class SignUpTests(APITestCase):
             user = get_user_model().objects.get(email=data["email"])
             # check encryption
             self.assertNotEqual(user.password, data["password"])
+
+            # check if user is in the correct group
             self.assertTrue(user.is_customer)
             user_groups = user.groups.all()
             num_of_groups = user_groups.count()
             self.assertEqual(num_of_groups, 1)
+
+            # check if email confirmation email was sent
+            self.assertEqual(len(mail.outbox), 1)
 
         except ObjectDoesNotExist:
             self.fail("ObjectDoesNotExist: the user wasn't created")
@@ -57,10 +65,13 @@ class SignUpTests(APITestCase):
             user = get_user_model().objects.get(email=data["email"])
             # check encryption
             self.assertNotEqual(user.password, data["password"])
+            # check if user is in the correct group
             self.assertTrue(user.is_distributor)
             user_groups = user.groups.all()
             num_of_groups = user_groups.count()
             self.assertEqual(num_of_groups, 1)
+            # check if email confirmation email was sent
+            self.assertEqual(len(mail.outbox), 1)
 
         except ObjectDoesNotExist:
             self.fail("ObjectDoesNotExist: the user wasn't created")

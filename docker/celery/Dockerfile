@@ -11,13 +11,8 @@ RUN apk add --no-cache \
     zlib-dev \
     postgresql-client
 
-    
 COPY ./src/requirements.txt /usr/src/app/
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 COPY ./src /usr/src/app
-COPY ./docker/django/entrypoint.sh /usr/src/entrypoint.sh
-COPY ./docker/setup_initial_data.sql /usr/src/setup_initial_data.sql
-
-ENTRYPOINT ["/usr/src/entrypoint.sh"]

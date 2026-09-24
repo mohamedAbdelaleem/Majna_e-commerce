@@ -209,3 +209,6 @@ STRIPE_PUBLISHER = os.environ.get(
 STRIPE_ENDPOINT_SECRET = os.environ.get(
     "STRIPE_ENDPOINT_SECRET", default=local_settings.STRIPE_ENDPOINT_SECRET
 )
+
+# Celery Configuration Options
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")

@@ -33,29 +33,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def is_distributor(self) -> bool:
         return self.groups.filter(name="Distributor").exists()
-    
+
     @property
     def is_reviewer(self) -> bool:
         return self.groups.filter(name="Reviewer").exists()
-    
+
     @property
     def is_delivery(self) -> bool:
         return self.groups.filter(name="Delivery").exists()
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
-
-    def send_email_confirmation_email(self):
-        subject = "Email Confirmation"
-        token = default_token_generator.make_token(user=self)
-        confirmation_link = (
-            settings.FRONTEND_BASE_URL + f"activate-account/{self.pk}/{token}"
-        )
-        html_message = render_to_string(
-            "email_confirmation.html", {"confirmation_link": confirmation_link}
-        )
-        text_message = strip_tags(html_message)
-        self.email_user(subject, text_message, html_message=html_message)
 
     def send_password_reset_email(self):
         subject = "Password Reset"
@@ -68,7 +56,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         )
         text_message = strip_tags(html_message)
         self.email_user(subject, text_message, html_message=html_message)
-    
+
     def activate_email(self):
         self.email_confirmed = True
         self.save()
@@ -86,9 +74,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 class Customer(models.Model):
-    user = models.OneToOneField(
-        get_user_model(), on_delete=models.PROTECT
-    ) 
+    user = models.OneToOneField(get_user_model(), on_delete=models.PROTECT)
 
     objects = CustomerManager()
 
@@ -99,10 +85,9 @@ class Customer(models.Model):
     def __str__(self) -> str:
         return self.user.get_username()
 
+
 class Distributor(models.Model):
-    user = models.OneToOneField(
-        get_user_model(), on_delete=models.PROTECT
-    )
+    user = models.OneToOneField(get_user_model(), on_delete=models.PROTECT)
 
     objects = DistributorManager()
 
