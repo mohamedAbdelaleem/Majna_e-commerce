@@ -3,7 +3,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
+from knox.models import AuthToken
 
 User = get_user_model()
 
@@ -36,3 +38,10 @@ def send_password_reset_email(user_pk: int):
     )
     text_message = strip_tags(html_message)
     user.email_user(subject, text_message, html_message=html_message)
+
+
+@shared_task()
+def cleanup_expired_tokens():
+    expired_tokens = AuthToken.objects.filter(expiry__lt=timezone.now())
+    expired_tokens_count, _ = expired_tokens.delete()
+    print(f"Deleted {expired_tokens_count} expired tokens.")

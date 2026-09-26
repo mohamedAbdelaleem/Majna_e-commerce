@@ -43,5 +43,19 @@ services:
     depends_on:
       - majna-db
       - redis-broker
+
+  celery-beat:
+    container_name: majna-celery-beat
+    build:
+      context: .
+      dockerfile: docker/celery/Dockerfile
+    entrypoint: ["celery", "-A", "majna.celery", "beat", "--loglevel=info"]
+    volumes:
+      - ./src:/usr/src/app
+    env_file:
+      - .env
+    depends_on:
+      - majna-db
+      - redis-broker
 volumes:
   postgres_data:
